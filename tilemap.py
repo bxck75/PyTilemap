@@ -1,5 +1,6 @@
 import pygame
 import random
+import json
 from pygame.locals import *
 
 class Tilemap:
@@ -14,12 +15,17 @@ class Tilemap:
                             self.tilesize*self.height-borders]
         self.mapsize = [self.width, self.height]
 
+    def remove_key(self, dictionary, key):
+        d = dict(dictionary)
+        del d[key]
+        return d
+
     def generate_random(self, exclude=[]):
         """Generate a random tilemap"""
-        temp_textures = self.textures
+        allowed = list(range(len(self.textures)))
         for texture in exclude:
-            del temp_textures[texture]
-        self.tilemap = [[random.randint(0, len(temp_textures)-1) for e in range(
+            allowed.remove(texture)
+        self.tilemap = [[random.choice(allowed) for e in range(
         self.width)] for e in range(self.height)]
 
     def generate(self, number, life, tile):
@@ -109,18 +115,24 @@ class Tilemap:
         else:
             return False
 
-    def draw(self, display, camera=None):
+    def json_dump(self, file_name):
+        """Save the tilemap as a JSON file"""
+        with open(file_name, 'w') as f:
+            dumped = json.dumps(self.tilemap)
+            f.write(dumped)
+
+    def json_load(self, file_name):
+        """Load a JSON file"""
+        with open(file_name, 'r') as f:
+            self.tilemap = json.load(f.read())
+
+    def draw(self, display):
         """Draw the tilemap"""
         for row in range(self.height):
             for column in range(self.width):
-                if camera != None:
-                    display.blit(self.textures[self.tilemap[row][column]],
-                                        (column*self.tilesize-camera.x,
-                                        row*self.tilesize-camera.y))
-                else:
-                    display.blit(self.textures[self.tilemap[row][column]],
-                                        (column*self.tilesize,
-                                        row*self.tilesize))
+                display.blit(self.textures[self.tilemap[row][column]],
+                                    (column*self.tilesize,
+                                    row*self.tilesize))
 
 class Ant:
     # Ant idea from http://stackoverflow.com/a/4800633/5198106... Thank you!
