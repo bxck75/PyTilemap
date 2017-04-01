@@ -12,29 +12,55 @@ class Tilemap:
         self.height = height # How many tile high the map is
         self.window_size = [self.tilesize*self.width-borders,
                             self.tilesize*self.height-borders]
+        self.mapsize = [self.width, self.height]
 
-    def generate_random(self):
+    def generate_random(self, exclude=[]):
         """Generate a random tilemap"""
-        self.tilemap = [[random.randint(0, len(self.textures)-1) for e in range(
+        temp_textures = self.textures
+        for texture in exclude:
+            del temp_textures[texture]
+        self.tilemap = [[random.randint(0, len(temp_textures)-1) for e in range(
         self.width)] for e in range(self.height)]
+
+    def generate(self, number, life, tile):
+        """Generate 'blobs' of textures using 'ants'"""
+        ants = []
+        for i in range(number):
+            ants.append(Ant([random.randint(0, self.width-1),
+             random.randint(0, self.height-1)], life, self.mapsize,
+             self, tile))
+
+        for ant in ants:
+            while ant.life > 1:
+                ant.move()
+                try:
+                    self.tilemap[ant.position[0]][ant.position[1]] = ant.tile
+                except IndexError:
+                    ant.position[0] += 1
+                    ant.position[1] += 1
+            ants.remove(ant)
 
     def fill(self, texture):
         """Fill the entire tilemap with a certain texture"""
         self.tilemap = [[texture for e in range(self.width)] for e in range(
         self.height)]
 
-    def fill_row(self, texture, row, freq=0, skip=[]):
-        """Randomly place a texture in a column"""
-        for i in range(0, self.width):
+    def fill_row(self, texture, row, freq=0, skip=[], pos=[0, None]):
+        """Place a texture in a row"""
+        if pos[1] == None:
+            pos[1] = self.width
+        for i in range(pos[0], pos[1]):
             if random.randint(0, freq) == freq:
                 if self.tilemap[row][i] in skip:
                     pass
                 else:
                     self.tilemap[row][i] = texture
 
-    def fill_col(self, texture, col, freq=0, skip=[]):
-        """Randomly place a texture in a row"""
-        for i in range(0, self.height):
+    def fill_col(self, texture, col, freq=0, skip=[], pos=[0, None]):
+        """Place a texture in a column"""
+        if pos[1] == None:
+            pos[1] = self.width
+        for i in range(pos[0], pos[1]):
             if random.randint(0, freq) == freq:
                 if self.tilemap[i][col] in skip:
                     pass
@@ -47,6 +73,14 @@ class Tilemap:
             for column in range(self.width):
                 if self.tilemap[row][column] in textures:
                     self.tilemap[row][column] = replacement
+
+    def remove_single(self, tiles, replacement):
+        for tile in tiles:
+            for row in range(self.height):
+                for column in range(self.width):
+                    if self.tilemap[row][column] == tile:
+                        if not self.next_to([row, column], tile):
+                            self.tilemap[row][column] = replacement
 
     def next_to(self, position, tile):
         """Check if a tile is next to another one"""
@@ -74,10 +108,42 @@ class Tilemap:
         else:
             return False
 
-    def draw(self, display):
+    def draw(self, display, camera=None):
         """Draw the tilemap"""
         for row in range(self.height):
             for column in range(self.width):
-                display.blit(self.textures[self.tilemap[row][column]],
-                                    (column*self.tilesize,
-                                     row*self.tilesize))
+                if camera != None:
+                    display.blit(self.textures[self.tilemap[row][column]],
+                                        (column*self.tilesize-camera.x,
+                                        row*self.tilesize-camera.y))
+                else:
+                    display.blit(self.textures[self.tilemap[row][column]],
+                                        (column*self.tilesize,
+                                        row*self.tilesize))
+
+class Ant:
+    # Ant idea from http://stackoverflow.com/a/4800633/5198106... Thank you!
+    def __init__(self, position, life, mapsize, tilemap, tile):
+        self.position = position
+        self.life = life
+        self.mapsize = mapsize
+        self.tilemap = tilemap
+        self.tile = tile
+
+    def move(self):
+        direction = random.randint(0, 3)
+        if direction == 0: self.position[0] += 1
+        elif direction == 1: self.position[0] -= 1
+        elif direction == 2: self.position[1] += 1
+        elif direction == 3: self.position[1] -= 1
+        if self.position[0] < 0:
+            self.position[0] = 0
+        if self.position[0] > self.mapsize[0]:
+            self.position[0] = self.mapsize[0]
+        if self.position[1] < 0:
+            self.position[1] = 1
+        if self.position[1] > self.mapsize[1]:
+            self.position[1] = self.mapsize[1]
+        self.life -= 1
+        if not self.tilemap.next_to(self.position, self.tile):
+            self.move()
