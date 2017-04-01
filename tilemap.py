@@ -75,6 +75,7 @@ class Tilemap:
                     self.tilemap[row][column] = replacement
 
     def remove_single(self, tiles, replacement):
+        """Remove single tiles"""
         for tile in tiles:
             for row in range(self.height):
                 for column in range(self.width):
