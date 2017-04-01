@@ -5,7 +5,7 @@ PyTilemap makes making tilemaps with PyGame much easier. Just a few lines of cod
 
 Here's a really simple map I created using PyTilemap:
 
-![A simple map](tilemap.PNG)
+![A simple map](http://www.m654z.github.io/tilemap.PNG)
 
 And here's the code:
 
