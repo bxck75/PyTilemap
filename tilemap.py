@@ -15,11 +15,6 @@ class Tilemap:
                             self.tilesize*self.height-borders]
         self.mapsize = [self.width, self.height]
 
-    def remove_key(self, dictionary, key):
-        d = dict(dictionary)
-        del d[key]
-        return d
-
     def generate_random(self, exclude=[]):
         """Generate a random tilemap"""
         allowed = list(range(len(self.textures)))
@@ -136,6 +131,7 @@ class Tilemap:
 
 class Ant:
     # Ant idea from http://stackoverflow.com/a/4800633/5198106... Thank you!
+    """Moves around randomly, creating 'realistic' blobs of textures"""
     def __init__(self, position, life, mapsize, tilemap, tile):
         self.position = position
         self.life = life
@@ -144,6 +140,7 @@ class Ant:
         self.tile = tile
 
     def move(self):
+        """Move in a random direction"""
         direction = random.randint(0, 3)
         if direction == 0: self.position[0] += 1
         elif direction == 1: self.position[0] -= 1
