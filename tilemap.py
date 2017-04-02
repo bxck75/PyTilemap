@@ -1,5 +1,6 @@
 import pygame
 import random
+import sys
 import json
 from pygame.locals import *
 
@@ -18,8 +19,15 @@ class Tilemap:
     def generate_random(self, exclude=[]):
         """Generate a random tilemap"""
         allowed = list(range(len(self.textures)))
-        for texture in exclude:
-            allowed.remove(texture)
+        try:
+            for texture in exclude:
+                allowed.remove(texture)
+        except TypeError:
+            print("""ERROR: generate_random() takes a list as an argument.
+Instead it found a"""+str(type(exclude))+"""
+For example, tilemap.generate_random(exclude=[0,3,4])
+Currently running generate_random() with no arguments."""+"\n")
+            sys.exit()
         self.tilemap = [[random.choice(allowed) for e in range(
         self.width)] for e in range(self.height)]
 
@@ -123,11 +131,26 @@ class Tilemap:
 
     def draw(self, display):
         """Draw the tilemap"""
-        for row in range(self.height):
-            for column in range(self.width):
-                display.blit(self.textures[self.tilemap[row][column]],
-                                    (column*self.tilesize,
-                                    row*self.tilesize))
+        try:
+            for row in range(self.height):
+                for column in range(self.width):
+                    display.blit(self.textures[self.tilemap[row][column]],
+                                        (column*self.tilesize,
+                                        row*self.tilesize))
+        except KeyError:
+            print("""ERROR: the draw() function is trying to load
+a texture that doesn't exist. Are you sure it's in the dictionary?\n
+"""+str(self.textures) + "\n")
+            sys.exit()
+        except TypeError:
+            print("""ERROR: the draw() function is trying to draw
+something that isn't a pygame.Surface object.\n\n"""+
+str(self.textures) + "\n")
+            sys.exit()
+        except IndexError:
+            print("""ERROR: the tilemap seems to be empty.\n\n"""+
+str(self.tilemap) + "\n")
+            sys.exit()
 
 class Ant:
     # Ant idea from http://stackoverflow.com/a/4800633/5198106... Thank you!
@@ -155,5 +178,16 @@ class Ant:
         if self.position[1] > self.mapsize[1]:
             self.position[1] = self.mapsize[1]
         self.life -= 1
-        if not self.tilemap.next_to(self.position, self.tile):
-            self.move()
+        try:
+            if not self.tilemap.next_to(self.position, self.tile):
+                self.move()
+        except:
+            if self.tile not in self.tilemap.textures:
+                print("""ERROR: An ant is trying to draw a texture
+that doesn't exist: """ + str(self.tile) + "\n")
+                sys.exit()
+            else:
+                print("""ERROR: Something went wrong with an ant.
+It's position was """ + str(self.position) + " and it was drawing texture " +
+str(self.tile) + "\n")
+                sys.exit()
