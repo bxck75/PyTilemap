@@ -152,6 +152,42 @@ str(self.textures) + "\n")
 str(self.tilemap) + "\n")
             sys.exit()
 
+class Unit:
+    def __init__(self, image, tilemap, position=[0,0]):
+        self.image = image
+        self.tilemap = tilemap
+        self.position = position
+
+    def draw(self, display):
+        """Draw the unit"""
+        display.blit(self.image,[self.position[0]*self.tilemap.tilesize,
+        self.position[1]*self.tilemap.tilesize])
+
+    def move_up(self, block=[]):
+        """Move the unit up"""
+        if self.position[1] > 0:
+            if not self.tilemap.tilemap[self.position[1]-1][self.position[0]] in block:
+                self.position[1] -= 1
+
+    def move_down(self, block=[]):
+        """Move the unit down"""
+        if self.position[1] < self.tilemap.height - 1:
+            if not self.tilemap.tilemap[self.position[1]+1][self.position[0]] in block:
+                self.position[1] += 1
+
+    def move_right(self, block=[]):
+        """Move the unit right"""
+        if self.position[0] < self.tilemap.width - 1:
+            if not self.tilemap.tilemap[self.position[1]][self.position[0]+1] in block:
+                self.position[0] += 1
+
+    def move_left(self, block=[]):
+        """Move the unit left"""
+        if self.position[0] > 0:
+            if not self.tilemap.tilemap[self.position[1]][self.position[0]-1] in block:
+                self.position[0] -= 1
+
+
 class Ant:
     # Ant idea from http://stackoverflow.com/a/4800633/5198106... Thank you!
     """Moves around randomly, creating 'realistic' blobs of textures"""
